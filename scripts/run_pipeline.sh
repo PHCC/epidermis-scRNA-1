@@ -4,13 +4,21 @@ set -euo pipefail
 
 export NSLOTS=80 #number of cores to use this should be set AUTOMATICALLY ON QUEUE SYSTEMS
 
-export DATA="/single_cell/data"
+#export DATA="/single_cell/data"
+#export DATA="single_cell/data"    # on Comet !
 
-export PYTHONPATH="/single_cell/src"
-export PATH="/single_cell/src:$PATH"
+#export PYTHONPATH="/single_cell/src"
+export PYTHONPATH="single_cell/src"
 
-WORKDIR="/single_cell"
+#export PATH="/single_cell/src:$PATH"
+#export PATH="../src:$PATH"
+
+#WORKDIR="/single_cell"
+WORKDIR="single_cell"
 cd $WORKDIR
+
+export DATA="data"
+export PATH="../src:$PATH"
 
 # .feather file: raw countdata stored in the feather file format for rapid loading, rownames are in the first column labeled "rownames"
 export FEATHER=`ls $DATA/*.feather`
