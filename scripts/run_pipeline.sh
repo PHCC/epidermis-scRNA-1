@@ -1,32 +1,39 @@
 #!/bin/bash
 
 set -euo pipefail
+export NSLOTS=20                                     # was 80, then 40: mem req. too much for COMET, then 30: ran some hours until mem full. 20: ran up to OPENBLAS problem below
+                                                     # number of cores to use this should be set AUTOMATICALLY ON QUEUE SYSTEMS
 
-export NSLOTS=80 #number of cores to use this should be set AUTOMATICALLY ON QUEUE SYSTEMS
+export OPENBLAS_NUM_THREADS=1                        # https://stackoverflow.com/questions/51256738/multiple-instances-of-python-running-simultaneously-limited-to-35 : "nuclear option"
+                                                     # ... further down explains better values
 
-#export DATA="/single_cell/data"
-#export DATA="single_cell/data"    # on Comet !
+#WORKDIR="/single_cell"                              # AJ
+#WORKDIR="/netapp/home/labjbc/epidermis-scRNA-fork"  # wynton
+WORKDIR="/home/cpahl/single_cell"                    # Comet
+cd $WORKDIR
 
-#export PYTHONPATH="/single_cell/src"
-export PYTHONPATH="single_cell/src"
+#export PYTHONPATH="/single_cell/src"                # AJ
+#export PYTHONPATH="src"                             # Wynton
+#export  PYTHONPATH="single_cell/src"                # Comet ... not used!
 
 #export PATH="/single_cell/src:$PATH"
 #export PATH="../src:$PATH"
+export  PATH="/home/cpahl/epidermis-scRNA-fork/src:$PATH"
 
-#WORKDIR="/single_cell"
-WORKDIR="single_cell"
-cd $WORKDIR
+#export DATA="/single_cell/data"                     # 
+#export DATA="../first_paper_cohort/data"
+export  DATA="/home/cpahl/single_cell/data"          # Comet
 
-export DATA="data"
-export PATH="../src:$PATH"
 
 # .feather file: raw countdata stored in the feather file format for rapid loading, rownames are in the first column labeled "rownames"
+echo SHELL=$SHELL	echo PYTHONPATH=$PYTHONPATH     PATH=$PATH              DATA=$DATA
+#echo ls $DATA/*.feather :; ls $DATA/*.feather
 export FEATHER=`ls $DATA/*.feather`
 
 # .tsv file    : metadata about the cells from the countdata, rownames(coldata) should match colnames(countdata)
 export TSV=`ls $DATA/*.tsv`
 
-echo FEATHER=$FEATHER TSV=$TSV
+echo PYTHONPATH=$PYTHONPATH	PATH=$PATH		DATA=$DATA	FEATHER=$FEATHER	TSV=$TSV
 
 # zinb: an output directory
 if [ ! -e "./zinb/zinb_W.csv" ]; then
@@ -35,6 +42,9 @@ if [ ! -e "./zinb/zinb_W.csv" ]; then
 else
     echo "zinb output file found, skipping"
 fi
+
+#######################################################################################################################################
+if false; then
 
 # Specify cells (usually disease/treated) to exclude from PCA/clustering and then project onto normal/control
 # clusters after the fact
@@ -72,8 +82,7 @@ fo="./pca_imputed/magic_counts_t10.csv"
 
 # --randomized flag may speed up
 mkdir -p "./pca_imputed"
-run_PCA.py --fi_expr "$fi_expr" --nPC "$nPC" --logT_pseudo "$logT_pseudo" --fi_cellNames "$fi_cellNames" --fi_geneNames "$fi_geneNames" --fi_project "$fi_project" --fo "$fo"
-
+run_PCA.py --fi_expr "$fi_expr" --nPC "$nPC" --logT_pseudo "$logT_pseudo" --fi_cellNames "$fi_cellNames" --fi_geneNames "$fi_geneNames" --fi_project "$fi_project" --fo "$fo"              
 
 ##(5) perform KASP clustering on the top 20 PCs  ##############################################
 nfeat=20  ## use the 1st 20 columns of f_in (this is 1st 20 PCs)
@@ -97,6 +106,10 @@ run_specCluster.py --f_in "$f_in" --fo "$fo" --fo_runDat "$fo_runDat" --predictO
 
 mkdir -p cl
 run_clustVis.R kasp_imputed/nFeat20_nClust10.csv $TSV $FEATHER cl
+
+else
+  echo "skipped all before run_clustDE"
+fi
 
 #Use coldata with sorted cluster assignments for clusterDE
 run_clustDE_feather.R $FEATHER ./cl/coldata_clust.csv cl

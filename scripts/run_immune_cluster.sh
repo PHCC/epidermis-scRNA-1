@@ -1,9 +1,17 @@
 #!/bin/bash
 
-export PYTHONPATH="/single_cell/src"
-export PATH="/single_cell/src:$PATH"
+#export PYTHONPATH="/single_cell/src"                        # AJ
+export PYTHONPATH="/home/cpahl/epidermis-scRNA-fork/src"     # Comet 
 
-export DATA="/single_cell/data"
+#export PATH="/single_cell/src:$PATH"               # AJ
+export PATH="/home/cpahl/single_cell/src:$PATH"     # Comet
+
+#export DATA="/single_cell/data"                    # AJ
+export DATA="/home/cpahl/single_cell/data"          # Comet
+
+WORKDIR="/home/cpahl/single_cell"                    # Comet
+cd $WORKDIR
+
 
 # .feather file: raw countdata stored in the feather file format for rapid loading, rownames are in the first column labeled "rownames"
 export FEATHER=`ls $DATA/*.feather`

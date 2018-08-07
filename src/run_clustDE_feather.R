@@ -8,7 +8,7 @@ if(length(args) !=3){
 library(feather)
 library(tibble)
 
-source("/single_cell/src/DE_functions.R")
+source("/home/cpahl/epidermis-scRNA-fork/src/DE_functions.R")
 #source("/netapp/home/labjbc/src/DE_functions.R")
 #source("/home/jovyan/work/analysis_pipeline/plot_functions.R")
 
