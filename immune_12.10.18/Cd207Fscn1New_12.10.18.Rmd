@@ -1,0 +1,241 @@
+---
+title: "old and new markers"
+author: "Christoph Pahl" 
+date: "October 12 2018"
+output:
+  pdf_document: 
+    toc: true
+    toc_depth: 3
+geometry: margin=0.5cm
+---
+
+# Port last Week's Python Analysis to R: Reproduce Plots
+```{r echo=FALSE, warning=FALSE}
+
+#read.list(file="../egrep '10816|9933' matrix.mtx .log", skip=0, nlines=2, order=NULL)
+my_data = read.table(file="./egrep '10816|9933' matrix.mtx .log", header=FALSE, sep=" ")
+names(my_data) <- c('gene index', 'sorted cell index', '#gene')
+
+Cd207 <- function(){return(10816)}
+Fscn1 <- function(){return( 9933)}
+#c(Cd207(), Fscn1())
+
+# Compile Data Frame
+cellnrs = my_data['sorted cell index']                   # .py: [GenCelNgen[1] for GenCelNgen in my_data]
+
+## Create empty Data Frame - genügt data.frame(c()) ??
+N_Cd207 = N_Fscn1 = rep(0,2966)
+
+cellFscn1Cd207 = data.frame(N_Cd207, N_Fscn1)
+#cellFscn1Cd207
+
+for (row in 1:nrow(my_data)) {
+  if( my_data[row,'gene index'] == Cd207() ){
+    sci  = my_data[row,'sorted cell index']
+    ngen = my_data[row,'#gene'] 
+    cellFscn1Cd207[sci, 'N_Cd207'] <- ngen 
+  }
+  if( my_data[row,'gene index'] == Fscn1() ){
+    sci  = my_data[row,'sorted cell index']
+    ngen = my_data[row,'#gene'] 
+    cellFscn1Cd207[sci, 'N_Fscn1'] <- ngen 
+  }
+}
+
+ord <- order(-cellFscn1Cd207$N_Cd207,-cellFscn1Cd207$N_Fscn1) 
+sortCd207 = cellFscn1Cd207[ord,]
+## Warning: Removed 2384 rows containing missing values (geom_path). \\ WHY ??
+```
+
+```{r echo=FALSE, warning=FALSE}
+#install.packages("ggplot")  # ist da!
+library(ggplot2)
+
+p = ggplot() + 
+  geom_line(data = sortCd207, aes(     x = 1:nrow(sortCd207),  y = N_Cd207+0.1, color = "red"  )) +   # avoid logy problems             
+  geom_line(data = sortCd207, aes(     x = 1:nrow(sortCd207),  y = N_Fscn1+0.1, color = "brown")) +                
+  scale_color_discrete(name = "genes", labels = c("Fscn1", "Cd207"))                              +
+  xlab('identification number in sorted cells')                                                   +
+  ylab('gene count')                                                                              + 
+  coord_trans(y="log2") + xlim(0, 600)                                                            +      
+  ggtitle("VEH_7d_2")
+
+p
+
+# Removed 2384 rows containing missing values (geom_path).       \\ why ??
+# Removed 2384 rows containing missing values (geom_path).
+```
+
+```{r  echo=FALSE, warning=FALSE}
+p = ggplot() + 
+  geom_line(data = sortCd207, aes(     x = 1:nrow(sortCd207),  y = N_Cd207+0.1, color = "red"  )) +   # avoid logy problems             
+  geom_line(data = sortCd207, aes(     x = 1:nrow(sortCd207),  y = N_Fscn1+0.1, color = "brown")) +                
+  scale_color_discrete(name = "genes", labels = c("Fscn1", "Cd207")) +
+  xlab('identification number in sorted cells')                      +
+  ylab('gene count')                                                + 
+  xlim(0, 600)                                                       +      
+  ggtitle("VEH_7d_2")
+
+p
+
+# Removed 2384 rows containing missing values (geom_path).       \\ why ??
+# Removed 2384 rows containing missing values (geom_path).
+```
+
+```{r  echo=FALSE, warning=FALSE}
+p = ggplot() + 
+  geom_line(data = sortCd207, aes(     x = 1:nrow(sortCd207),  y = N_Cd207        +0.1, color = "red"  )) +                
+  geom_line(data = sortCd207, aes(     x = 1:nrow(sortCd207),  y = N_Cd207*N_Fscn1+0.1, color = "brown")) +                
+  scale_color_discrete(name = "genes", labels = c("N_Cd207*Fscn1", "Cd207"))                              +
+  xlab('identification number in sorted cells') + ylab('gene count')                                     + 
+  coord_trans(y="log2") + xlim(0, 600)                                                                    +
+  ggtitle("VEH_7d_2")
+  
+#print(p)
+p
+
+# Removed 2384 rows containing missing values (geom_path).       \\ why ??
+# Removed 2384 rows containing missing values (geom_path).
+```
+
+# Histogramming Gene Counts per Cell
+```{r echo=FALSE}
+hist(log10(sortCd207$N_Cd207), main="VEH_7d_2 : distribution of log10(Cd207 count per cell)")
+```
+
+A linear x-axis gives not enough detail, so I'm histogramming the logarithm of the respective gene count (a histogram with logarithmic axis would need much hacking).
+
+## Mean Values of Cd207 and Fscn1 Counts, their Correlation:
+```{r echo=FALSE}
+mean(sortCd207$N_Cd207, na.rm=TRUE)
+mean(sortCd207$N_Fscn1, na.rm=TRUE)
+cor(sortCd207, use="complete.obs")            
+```
+
+## Raymond asked for Distribution of 1's
+```{r echo=FALSE}
+#log10(200)
+```
+$10^{0.2} \approx 1.6\,$, so the values of one constitute the first bin. From the first plots (with logarithmic y axis !) he also proposed a cut at #Cd207 ~ 200 to eliminate Langerhans cells, this corresponds to a log10 value of 2.3 at the far right end of the histogram. The above histogram might rather propose a cut value of $10^1 = 10\,$? 
+
+```{r echo=FALSE}
+#hist(    sortCd207$N_Fscn1)
+hist(log10(sortCd207$N_Fscn1), main="VEH_7d_2 : distribution of log10(Fscn1 count per cell)")
+```
+
+```{r echo=FALSE}
+#hist(    sortCd207$N_Cd207*sortCd207$N_Fscn1 )
+hist(log10(sortCd207$N_Cd207*sortCd207$N_Fscn1), main="VEH_7d_2 : distribution of log10(N_Cd207* N_Fscn1)")
+```
+
+# Histogramming New Markers
+
+*Raymond: Here is what else I think should be excluded.*
+
+*1. Any cells with high KRTDAP or high KRT10, KRT1, KRT5, or KRT14 (these are keratinocyte contaminants and not immune cells)*
+
+*2. For a groups of cells known as macrophages, I think it is worth looking at CCL17, CD14, and LYZ2. I am not sure how these will overlap in real life, as we were not for CD207 and FSCN1, so cross analysis of these markers as in that case will help. *
+
+*3. The third and messiest class are dendritic cells, where the markers that might not distinguish that are not "canonically' known. Can we look at DCN, C1qa, CCL2, and CD7 as co-markers for a group? A GROUP FOR EXAMPLE IS LANGERHANS CELLS. It would also be interesting to see if there is any CD141 or CD11c detectable in any cells. The latter two are the markers that "should" be in dendritic cells.*
+```{r echo=FALSE}   
+
+geneNames = c("Fscn1","Cd207",  "Krtdap","Krt10","Krt1","Krt5","Krt14",  "Ccl17","Cd14","Lyz2", "Dcn", "C1qa","Ccl2","Cd7")  
+
+# Read in Data Frame: sorted cell index, gene count
+for ( gene in  geneNames) {
+  filename = paste("filtergene_", gene, ".log", sep="")
+  # DEBUG: print(c("filename =", filename))
+  
+  my_data = read.table(file=filename, header=FALSE, sep=" ")
+  names(my_data) <- c('sorted cell index', 'gene count')
+  
+  #my_data
+  min(my_data['sorted cell index'])
+  tail(my_data, n=10)
+
+  hist( log10(my_data$`gene count`), main=paste("VEH_7d_2 : distribution of log10(", gene," gene count per cell)", sep="") )
+  print("")  
+}
+```
+From where on can we call the counts *high* ?
+
+It would be informative to add the uncertainties of the histogram entries, but I'm not quite sure about modelling their underlying distribution. Do you know any studies showing uncertainties? My first guess would be a binomial distribution...
+
+Cd141 or Cd11c do not exist in this sample.
+
+# 14 Genes into one Data Frame for homogeneous Analysis & Correlation Calculation
+Due to limited line length, the correlation matrix is broken two times. It is symmetric, scientific number format used in the lower triangle.
+
+The group of "Kr..." genes shows a high correlation, also "Ccl17, Cd14, Lyz2" and to a lesser extend "Dcn, C1qa, Ccl2, Cd7". The correlation af the latter group with "Cd207" is not very pronounced, in the case of "Dcn" even slightly negative. 
+```{r echo=FALSE}
+# Initialize Data Frame
+zeroSeq = rep(0, 2966)
+genesDf = data.frame(zeroSeq,zeroSeq, zeroSeq,zeroSeq, zeroSeq,zeroSeq, zeroSeq,zeroSeq, zeroSeq,zeroSeq, zeroSeq,zeroSeq, zeroSeq,zeroSeq )  # 14 columns
+names(genesDf) <- geneNames
+
+# Read in Data Frame: sorted cell index, gene count
+for ( gene in  geneNames) {
+  filename = paste("filtergene_", gene, ".log", sep="")
+  my_data = read.table(file=filename, header=FALSE, sep=" ")
+  names(my_data) <- c( 'sorted cell index', gene )
+  
+  #print(my_data)
+  #hist( log10(my_data[[genecount]]), main=paste("VEH_7d_2 : distribution of log10(", gene," count per cell)", sep="") )
+  #print("")  looks as above
+
+  for (row in 1:nrow(my_data)) {
+    #if( my_data[row,'gene index'] == Cd207() ){
+      sci  = my_data[row,'sorted cell index']
+      ngen = my_data[row, gene] 
+      genesDf[sci, gene] <- ngen 
+    #}
+  }
+}
+
+#print(genesDf)
+
+#myvars <- c('Fscn1', 'Cd207')
+#lessgenes <- genesDf[myvars]
+#cor(lessgenes, use="complete.obs")  gives 0.016 as before
+
+cor(genesDf, use="complete.obs")
+```
+# 14 Cell / Gene-Count Plots
+```{r echo=FALSE, warning=FALSE}
+library(ggplot2)
+
+#gene = "Fscn1"                                 # "Fscn1", "Cd207" alone OK
+for(gene in geneNames){                  # loop over columns
+#for( gene in c("Fscn1", "Cd207") ){                  # loop over 2 columns
+  #print(c("gene:",gene))
+
+  ord <- order(-genesDf[[gene]])      
+  sortGene = genesDf[ord,]
+
+  p = ggplot() + 
+    geom_line( data = sortGene, aes(     x = 1:nrow(sortGene),  y = sortGene[[gene]]+0.1, color = "red"  ))    +   # avoid logy problems
+    scale_color_discrete(name = "gene", labels = c(gene) )                                      +
+    xlab('identification number in sorted cells')                                                   +
+    ylab('gene count')                                                                              + 
+    coord_trans(y="log2") + xlim(0, 600)                                                            +      
+    ggtitle("VEH_7d_2")
+    #geom_line(data = sortGene, aes(     x = 1:nrow(sortGene),  y = N_Fscn1+0.1, color = "brown"))  +                
+    #scale_color_discrete(name = "genes", labels = c("Fscn1", "Cd207"))                             +
+    
+
+  print(p)
+  print("")
+}
+```
+
+# Next Steps
+- Plots combining genes: 14 genes give 91 pairs, which could in principle be ordered for both gene counts, I need some tactics to not   drown in data and propose:
+  - I draw all pairs of "Krtdap", "Krt10", "Krt1", "Krt5", "Krt14" and perhaps triples etc.
+  - then all pairs of "Ccl17","Cd14","Lyz2" 
+  - as Raymond mentionned "Dcn", "C1qa", "Ccl2", "Cd7" as co-markers for Langerhans cells, I pair them with "Cd207" and perhaps          "Fscn1"
+  - I pair "Cd141" with "Cd11c" when studying samples where they exist 
+  - I sort for the gene with higher mean value 
+- More samples:
+  - *Raymond: A few other notes - the samples you started looking at are mouse (IMQ or VEH in name) rather than the remaining 4 which     are human. I assume we are sticking with mouse right now as that's where we started. The (3) category above will probably only be     detectable in IMQ samples.*
+  - QC for mouse samples gave problems (Fscn1 and Cd207 passed but none of the cells), so human samples as crosscheck + **all** mouse     samples, then trace the mouse problem
+  - *Raymond: Finally after removal of these cells (one we can do at high confidence), we will cluster all 6 mouse samples together. I     assume removing cells before normalization is not really an issue.*
