@@ -4,8 +4,8 @@ set -euo pipefail
 export NSLOTS=20                                     # was 80, then 40: mem req. too much for COMET, then 30: ran some hours until mem full. 20: ran up to OPENBLAS problem below
                                                      # number of cores to use this should be set AUTOMATICALLY ON QUEUE SYSTEMS
 
-export OPENBLAS_NUM_THREADS=1                        # https://stackoverflow.com/questions/51256738/multiple-instances-of-python-running-simultaneously-limited-to-35 : "nuclear option"
-                                                     # ... further down explains better values
+#export OPENBLAS_NUM_THREADS=1                        # https://stackoverflow.com/questions/51256738/multiple-instances-of-python-running-simultaneously-limited-to-35 : "nuclear option", further down explains better values
+# \\ better use AJ's switch, see his email !!!!!!
 
 #WORKDIR="/single_cell"                              # AJ
 #WORKDIR="/netapp/home/labjbc/epidermis-scRNA-fork"  # wynton

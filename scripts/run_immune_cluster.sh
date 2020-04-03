@@ -1,15 +1,16 @@
 #!/bin/bash
 
-#export PYTHONPATH="/single_cell/src"                        # AJ
-export PYTHONPATH="/home/cpahl/epidermis-scRNA-fork/src"     # Comet 
+#export PYTHONPATH="/single_cell/src"                         # AJ
+export  PYTHONPATH="/home/cpahl/epidermis-scRNA-fork/src"     # Comet - necessary at all? not for run_pipeline.sh !  
 
-#export PATH="/single_cell/src:$PATH"               # AJ
-export PATH="/home/cpahl/single_cell/src:$PATH"     # Comet
+#export PATH="/single_cell/src:$PATH"                         # AJ
+#export PATH="/home/cpahl/single_cell/src:$PATH"              # Comet...
+export  PATH="/home/cpahl/epidermis-scRNA-fork/src:$PATH"     # ...Comet
 
-#export DATA="/single_cell/data"                    # AJ
-export DATA="/home/cpahl/single_cell/data"          # Comet
+#export DATA="/single_cell/data"                              # AJ
+export  DATA="/home/cpahl/single_cell/data"                   # Comet
 
-WORKDIR="/home/cpahl/single_cell"                    # Comet
+WORKDIR="/home/cpahl/single_cell"                             # Comet
 cd $WORKDIR
 
 
@@ -36,12 +37,12 @@ f_in="./pca_imputed/immune_PCcomps.csv"
 fo="./kasp_imputed/nFeat${nfeat}_nClust${nClust}_immune.csv"
 fo_runDat="./runData/kasp_immune.runData"
 predictOnly="./inputs/immune_cells_exclude.txt"
-alpha=1         ## the data reduction factor (see KASP reference (../README.txt)). For larger data sets 10 is gives good runtime .
+alpha=1           ## the data reduction factor (see KASP reference (../README.txt)). For larger data sets 10 is gives good runtime .
 #kmeans_frac=0.5  ## Fraction of the data used on which Kmeans round 1 is run (0.5 good for larger data sets). If not provided then Kmeans round 2 is skipped (see ../README.txt)
-kmeans_nJobs=-1
-ka=3            ## MAGIC parameter for adaptive cell-cell similarity
-k=10             ### MAGIC parameter for adaptive cell-cell similarity
-N_nearest=10     ## Nearest neighbor method used to assign cells in predictOnly File to clusters (after fitting the clustering). This parameter sets number of nearest neighbors to consider for cluster assignment
+kmeans_nJobs=1    ## AJ: -1, gave problem at 1024/10000. My 100 didn't run, Alex proposes 1
+ka=3              ## MAGIC parameter for adaptive cell-cell similarity
+k=10              ### MAGIC parameter for adaptive cell-cell similarity
+N_nearest=10      ## Nearest neighbor method used to assign cells in predictOnly File to clusters (after fitting the clustering). This parameter sets number of nearest neighbors to consider for cluster assignment
 
 run_specCluster.py --f_in "$f_in" --fo "$fo" --fo_runDat "$fo_runDat" --predictOnly "$predictOnly" --nfeat "$nfeat" --nClust "$nClust" --alpha "$alpha" --kmeans_nJobs "$kmeans_nJobs" --ka "$ka" --k "$k" --N_nearest "$N_nearest"
 
